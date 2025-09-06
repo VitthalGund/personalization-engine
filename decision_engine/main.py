@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, Header, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from .decision_engine import schemas
-from .decision_engine import models, database, config
+from . import schemas
+from . import models, database, config
 from report_generator.generate import generate_report_for_user
 
 # Create all database tables defined in models.py if they don't exist.
