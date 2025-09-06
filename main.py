@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Depends, HTTPException, Header, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .decision_engine import schemas
 from .decision_engine import models, database, config
+from report_generator.generate import generate_report_for_user
 
 # Create all database tables defined in models.py if they don't exist.
 # In a full production setup, a tool like Alembic would handle migrations.
@@ -93,3 +94,20 @@ def get_recommendation(
         )
 
     return {"contentNodeId": recommended_node.id}
+
+
+@app.post(
+    "/reports/generate",
+    status_code=202,
+    dependencies=[Depends(verify_api_key)],
+)
+async def trigger_report_generation(
+    request: schemas.RecommendationRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Triggers a report generation job for a specific user as a background task.
+    """
+    background_tasks.add_task(generate_report_for_user, request.userId)
+
+    return {"message": "Report generation has been queued."}
